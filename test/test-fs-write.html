@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+    <head>
+        <title>test-fs-write</title>
+        
+        <script type="text/javascript" src="http://yui.yahooapis.com/3.3.0/build/yui/yui-min.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../lib/webfs.js"></script>
+        
+        <script type="text/javascript">
+            var expected = 'Ã¼mlaut.';
+        
+            YUI().use('test', function (Y) {
+                
+                var suite = new Y.Test.Suite("Filesystem Suite");
+                
+                suite.add(new Y.Test.Case({
+                    name: "Test Filesystem Open",
+                    
+                    setUp: function() {
+                        this.webfs = new WebFS();
+                    },
+                    
+                    tearDown: function() {
+                        delete this.webfs;
+                    },
+                    testWrite1: function() {
+                        this.webfs.setFileSystem(this.webfs.TEMPORARY, 1, function(error, _self) {
+                            if (error)
+                                throw error;
+                            _self.open('write.txt', 'w', 0664, function(error, fd) {
+                                if (error)
+                                    throw error;
+                                _self.write(fd, '', function(error, written) {
+                                    Y.Assert.areSame(0, written);
+                                });
+                                _self.write(fd, expected, 0, 'utf8', function(error, written) {
+                                    Y.Assert.areSame(expected.length, written);
+                                });
+                            });
+                        });
+                    }
+                }));
+                
+                Y.Test.Runner.add(suite);
+                Y.Test.Runner.run();
+            });
+        </script>
+    </head>
+
+    <body>
+        
+    </body>
+</html>

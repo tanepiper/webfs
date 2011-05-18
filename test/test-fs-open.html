@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+    <head>
+        <title>test-fs-open</title>
+        
+        <script type="text/javascript" src="http://yui.yahooapis.com/3.3.0/build/yui/yui-min.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../lib/webfs.js"></script>
+        
+        <script type="text/javascript">
+            YUI().use('test', function (Y) {
+                
+                var suite = new Y.Test.Suite("Filesystem Suite");
+                
+                suite.add(new Y.Test.Case({
+                    name: "Test Filesystem Open",
+                    
+                    setUp: function() {
+                        this.webfs = new WebFS();
+                    },
+                    
+                    tearDown: function() {
+                        delete this.webfs;
+                    },
+                    testOpenFile: function() {
+                        this.webfs.setFileSystem(this.webfs.TEMPORARY, 1, function(error, _self) {
+                            if (error)
+                                throw error;
+                            _self.open('test.txt', 'w', null, function(error, fd) {
+                                if (error)
+                                    throw error;
+                                Y.Assert.isTrue(fd.isFile);
+                            });
+                        });
+                    }
+                }));
+                
+                Y.Test.Runner.add(suite);
+                Y.Test.Runner.run();
+            });
+        </script>
+    </head>
+
+    <body>
+        
+    </body>
+</html>

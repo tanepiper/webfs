@@ -34,7 +34,10 @@
                     $('#filelist').html('');
                     webFS.readdir('/', function(error, list) {
                         list.forEach(function(item) {
-                            $('#filelist').append('<li><a href="' + item.toURL() + '">' + item.name + '</a></li>');
+                            $('#filelist').append('<li><a href="' + 
+                                item.toURL() + 
+                                (item.isDirectory ? '/' : '') +
+                                '">' + item.name + '</a></li>');
                         });
                     });
                 };
