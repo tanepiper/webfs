@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+    <head>
+        <title>test-fs-write-buffer</title>
+        
+        <script type="text/javascript" src="http://yui.yahooapis.com/3.3.0/build/yui/yui-min.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../lib/webfs.js"></script>
+        
+        <script type="text/javascript">
+            var buffer = new BlobBuilder();
+            buffer.append('hello');
+            var expected_buffer = buffer.getBlob();
+            
+            var data = [
+                'data:image/png;base64,',
+                'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2',
+                'FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA4JJREFUeNpkU11oW2UYfs5vcpo0',
+                'P03bzLi1dVnbpWvXNnZNu6xDGBN2IUyxIPgDXtQbEVHwUlhFRbwQQZCBu1NhoL',
+                'i6DWG4qvNCTbt10s52MXqSpVna5CTmnJz8nr/4NTARfW6+73vhe7/nfb7noRYX',
+                'F6FpGvbQsiwYhga3L9ATGBiJuLv8hwCKVmUpmduOr5by6QwoCjTD4QEohmFgmu',
+                'aDMx+anT8XHDv5vNJg9u+VrRbAMhQso5aX7q1/nVj96l3oauqfBk6nE5VKBYfG',
+                '56amZ+c+6egem9gQFZSUKnweR/uyojZQa+pwud2wtGpe/OnCc+WdO9/uNWColg',
+                'lHbzD48ofXvhs/0BEs5IpIF3XMjXSihy/CJ9QR6vei0+3BvYyEFs05uvaPn9VL',
+                '8aV6VS4wdpudir50/rOHBqcm7DYOfroAW0tFfDcNyTuJvNkFMZfGcA8LQehEJi',
+                'eD4jps/QMDE1Iy9ikTmjnzWPDx195O52tgBA8C9ipu/baC3SPP4tHRKYyODiLn',
+                'DiO+IyJYXYfdKqFWuk8Y+focTPk2OzR95qwODqZVR0Oz0CAqZ5QGdMYNJ61hn5',
+                'OGiwHyXAdmIqM4Foli/dfbWLu5gri6b551dveFaobRVltSDZjdLjjUPFLZLSxz',
+                'YfgkDqJSBH3nGvihKGwuH4YmIgg8MgjPD9dDbMvUKYayQBFF5aoGyd+H2WNTkH',
+                '68gPTucYh8J/g/biDaqWAycgJKWUWjVoVp6CD6MWxhe/Ou/0D0dJn8BkszWEtr',
+                'OHl8AU87vNhYvggDNIaPDmP+hTfQYgXo9TIMXYNOzLeTzSTZeOyby/7JJ19hKR',
+                'f2eBjgcWOjgDAZ65kXFzBOXmV5O/FCDSrxi0nqjUadrBpursau0Jmt2PfpW1eW',
+                'PQJxnWmAkxM4LH2O6aP9ODJzCmrDQq4go16vw7JMNOo1whRI3N2Mx375+Quypc',
+                'zVSx+8zslbssCaoMSreOqJUzg4No2KqhKqTZIRk9DW27MT56FeKRvnP/7oVV3X',
+                'FcYuOKAqf+XyiZW1yXD4tM1/2FnOiegP9JAY0dB1o00XRCPBxiO7nZLfOvfmwt',
+                'bm5lLbyjzPt9NYlovi77Grl3u73K4m39uXvZ8V3C4nnAJHgtRENpPOL3158dL7',
+                '772zkEolr/8vTP+G29s94g0cPMGw/MMORssazZqUFP/cIDok8B/8LcAAJXakv9',
+                'J0J7YAAAAASUVORK5CYII='].join('');
+            
+            function dataURItoBlob(dataURI) {
+                // convert base64 to raw binary data held in a string
+                // doesn't handle URLEncoded DataURIs
+                var byteString = atob(dataURI.split(',')[1]);
+            
+                // separate out the mime component
+                var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+            
+                // write the bytes of the string to an ArrayBuffer
+                var ab = new ArrayBuffer(byteString.length);
+                var ia = new Uint8Array(ab);
+                for (var i = 0; i < byteString.length; i++) {
+                    ia[i] = byteString.charCodeAt(i);
+                }
+            
+                // write the ArrayBuffer to a blob, and you're done
+                var bb = new BlobBuilder();
+                bb.append(ab);
+                return bb.getBlob(mimeString);
+            }
+            
+            YUI().use('test', function (Y) {
+                
+                var suite = new Y.Test.Suite("Filesystem Suite");
+                
+                suite.add(new Y.Test.Case({
+                    name: "Test - Filesystem Write Buffer",
+                    
+                    setUp: function() {
+                        this.webfs = new WebFS();
+                    },
+                    
+                    tearDown: function() {
+                        delete this.webfs;
+                    },
+                    testWrite1: function() {
+                        this.webfs.setFileSystem(this.webfs.TEMPORARY, 1, function(error, _self) {
+                            if (error)
+                                throw error;
+                            _self.open('y.txt', 'w', 0664, function(error, fd) {
+                                _self.write(fd, expected_buffer, 0, expected_buffer.size, null, function(error, written) {
+                                    Y.Assert.areSame(expected_buffer.size, written);
+                                });
+                            });
+                            
+                            _self.open('img.jpg', 'w', 0664, function(error, fd) {
+                                _self.write(fd, dataURItoBlob(data), 0, dataURItoBlob(data).size, null, function(error, written) {
+                                    Y.Assert.areSame(dataURItoBlob(data).size, written);
+                                });
+                            });
+                        });
+                    }
+                }));
+                
+                Y.Test.Runner.add(suite);
+                Y.Test.Runner.run();
+            });
+        </script>
+    </head>
+
+    <body>
+        
+    </body>
+</html>

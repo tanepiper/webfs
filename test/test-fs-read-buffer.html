@@ -7,7 +7,7 @@
         <script type="text/javascript" src="../lib/webfs.js"></script>
         
         <script type="text/javascript">
-            var expected = 'Ã¼mlaut.';
+            var expected = 'xyz\n';
             var expected_blob = new BlobBuilder();
             expected_blob.append(expected);
             var expected_buffer = expected_blob.getBlob();
@@ -17,7 +17,7 @@
                 var suite = new Y.Test.Suite("Filesystem Suite");
                 
                 suite.add(new Y.Test.Case({
-                    name: "Test Filesystem Open",
+                    name: "Test FS Read Buffer",
                     
                     setUp: function() {
                         this.webfs = new WebFS();
@@ -26,18 +26,18 @@
                     tearDown: function() {
                         delete this.webfs;
                     },
-                    testWrite1: function() {
+                    testFsReadBuffer: function() {
                         this.webfs.setFileSystem(this.webfs.TEMPORARY, 1, function(error, _self) {
                             if (error)
                                 throw error;
-                            _self.open('write.txt', 'w', 0664, function(error, fd) {
+                            _self.open('x.txt', 'w', 0664, function(error, fd) {
                                 if (error)
                                     throw error;
-                                _self.write(fd, '', function(error, written) {
-                                    Y.Assert.areSame(0, written);
-                                });
                                 _self.write(fd, expected, 0, 'utf8', function(error, written) {
-                                    Y.Assert.areSame(expected_buffer.size, written);
+                                    var new_buffer = new BlobBuilder()
+                                    _self.read(fd, new_buffer, 0, expected_buffer.size, 0, function(error, read) {
+                                        Y.Assert.areSame(expected_buffer.size, read);
+                                    });
                                 });
                             });
                         });
