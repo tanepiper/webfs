@@ -1,22 +1,18 @@
 <!doctype html>
 <html>
     <head>
-        <title>Test: Filesystem Write</title>
+        <title>Test: Filesystem Read Dir</title>
         
         <script type="text/javascript" src="http://yui.yahooapis.com/3.3.0/build/yui/yui-min.js" charset="utf-8"></script>
         <script type="text/javascript" src="../lib/webfs.js"></script>
         
         <script type="text/javascript">
-            var expected_blob = new BlobBuilder();
-            expected_blob.append('Ã¼mlaut.');
-            var expected_buffer = expected_blob.getBlob();
-        
             YUI().use('test', function (Y) {
                 
                 var suite = new Y.Test.Suite("Filesystem Suite");
                 
                 suite.add(new Y.Test.Case({
-                    name: "Test: Filesystem Write",
+                    name: "Test: Filesystem Read Dir",
                     
                     setUp: function() {
                         this.webfs = new WebFS();
@@ -25,19 +21,14 @@
                     tearDown: function() {
                         delete this.webfs;
                     },
-                    testWrite1: function() {
+                    testOpenFile: function() {
                         this.webfs.setFileSystem(this.webfs.TEMPORARY, 1, function(error, _self) {
                             if (error)
                                 throw error;
-                            _self.open('write.txt', 'w', 0664, function(error, fd) {
+                            _self.readdir('/', function(error, dirs) {
                                 if (error)
                                     throw error;
-                                _self.write(fd, '', function(error, written) {
-                                    Y.Assert.areSame(0, written);
-                                });
-                                _self.write(fd, expected_buffer, function(error, written) {
-                                    Y.Assert.areSame(expected_buffer.size, written);
-                                });
+                                Y.Assert.isArray(dirs);
                             });
                         });
                     }

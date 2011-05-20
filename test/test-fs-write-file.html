@@ -15,7 +15,8 @@
                 '历经五代君主。南越国是岭南地区的第一个有记载的政权国家，采用封建制和郡县制并存的制度，' +
                 '它的建立保证了秦末乱世岭南地区社会秩序的稳定，有效的改善了岭南地区落后的政治、##济现状。\n';
 
-            var expected_blob = (new BlobBuilder()).append(s);
+            var expected_blob = new BlobBuilder();
+            expected_blob.append(s);
             var expected_buffer = expected_blob.getBlob();
             
             YUI().use('test', function (Y) {

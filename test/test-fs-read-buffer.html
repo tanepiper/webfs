@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-        <title>test-fs-write</title>
+        <title>Test: Filesystem Read Buffer</title>
         
         <script type="text/javascript" src="http://yui.yahooapis.com/3.3.0/build/yui/yui-min.js" charset="utf-8"></script>
         <script type="text/javascript" src="../lib/webfs.js"></script>
@@ -17,7 +17,7 @@
                 var suite = new Y.Test.Suite("Filesystem Suite");
                 
                 suite.add(new Y.Test.Case({
-                    name: "Test FS Read Buffer",
+                    name: "Test: Filesystem Read Buffer",
                     
                     setUp: function() {
                         this.webfs = new WebFS();
@@ -33,7 +33,7 @@
                             _self.open('x.txt', 'w', 0664, function(error, fd) {
                                 if (error)
                                     throw error;
-                                _self.write(fd, expected, 0, 'utf8', function(error, written) {
+                                _self.write(fd, expected_buffer, 0, 'utf8', function(error, written) {
                                     var new_buffer = new BlobBuilder()
                                     _self.read(fd, new_buffer, 0, expected_buffer.size, 0, function(error, read) {
                                         Y.Assert.areSame(expected_buffer.size, read);
