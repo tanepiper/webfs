@@ -13,7 +13,10 @@
             <label for="file">File to Upload:</label>
             <input type="file" id="file" name="file" />
             <br />
-            <input type="submit" value="Upload" name="upload" id="upload" />
+            <label for="dirname">Create Directory:</label>
+            <input type="text" id="dirname" name="dirname" />
+            <br />
+            <input type="submit" value="Submit" name="submit" id="submit" />
         </form>
         <hr />
         <div id="messages"></div>
@@ -22,7 +25,8 @@
         </div>
         
         <script type="text/javascript">
-            var webfs = new WebFS();
+            var webfs = new WebFS(),
+                currentDir;
             webfs.setFileSystem(webfs.TEMPORARY, 100, function(error) {
                 
                 if (error) {
@@ -30,35 +34,84 @@
                     return
                 }
                 
-                var getFiles = function() {
-                    $('#file-list > ul').html('');
-                    webfs.readdir('/', function(error, list) {
-                        $('#file-list > ul').append('<li class="dir"><a href="..">../</a></li>');
-                        
-                        list.forEach(function(item) {
-                            webfs.open(item, function(error, handler) {
-                                if (['.usage'].indexOf(handler.name) > -1)
-                                    return;
-                                if (handler.isDirectory) {
-                                    $('#file-list > ul').append('<li class="dir"><a href="' + handler.toURL() + '">' + handler.name + '/</a></li>');
-                                } else if (handler.isFile) {
-                                    $('#file-list > ul').append('<li class="file"><a href="' + handler.toURL() + '">' + handler.name + '</a></li>');
-                                }
+                webfs.open('/', function(error, dirHandler) {
+                    if (error) {
+                        $('#messages').text(error);
+                        return
+                    }
+                    currentDir = dirHandler;
+                
+                    var getFiles = function(dir) {
+                        dir = dir || currentDir;
+                        $('#file-list > ul').html('');
+                        webfs.readdir(dir.fullPath, function(error, list) {
+                            list.forEach(function(item) {
+                                webfs.open(item, function(error, handler) {
+                                    if (error) {
+                                        $('#messages').text(item + ': ' +error);
+                                        return;
+                                    }
+                                    if (['.usage'].indexOf(handler.name) > -1)
+                                        return;
+                                    if (handler.isDirectory) {
+                                        $('#file-list > ul').append('<li class="dir"><a class="dir" href="' + handler.toURL() + '">' + handler.name + '/</a></li>');
+                                    } else if (handler.isFile) {
+                                        $('#file-list > ul').append('<li class="file"><a class="file" href="' + handler.toURL() + '">' + handler.name + '</a></li>');
+                                    }
+                                });
                             });
                         });
-                    });
-                };
-                getFiles();
-                
-                
-                $('#file-upload').submit(function(e) {
-                    e.preventDefault();
+                    };
                     
-                    var file = $('#file')[0].files[0];
-                    webfs.writeFile(file.fileName, file, null, function(handler) {
-                        $('#messages').text('File ' + file.fileName + ' uploaded');
-                        getFiles();
+                    getFiles();
+                    
+                    
+                    $('#file-upload').submit(function(e) {
+                        e.preventDefault();
+                        
+                        var file = $('#file')[0].files[0];
+                        var dir = $('#dirname').val();
+                        
+                        if (file) {
+                            if (dir) {
+                                webfs.open(currentDir.fullPath + dir + '/', function(error, dirHandler) {
+                                    if (error) {
+                                        $('#messages').text('You must select a file or enter dir name');
+                                        return;
+                                    }
+                                    webfs.writeFile(dirHandler.fullPath + '/' + file.fileName, file, null, function(handler) {
+                                        $('#messages').text('File ' + file.fileName + ' uploaded');
+                                        getFiles(dirHandler);
+                                    });
+                                });
+                            } else {
+                                webfs.writeFile(file.fileName, file, null, function(handler) {
+                                    $('#messages').text('File ' + file.fileName + ' uploaded');
+                                    getFiles(currentDir);
+                                });
+                            }
+                        } else if (dir) {
+                            webfs.mkdir(dir, function(error, dirHandler) {
+                                if (error) {
+                                    $('#messages').text('You must select a file or enter dir name');
+                                    return;
+                                }
+                                getFiles(currentDir);
+                            });
+                        } else {
+                            $('#messages').text('You must select a file or enter dir name');
+                            return;
+                        }
                     });
+                    
+                    /*
+                    $('a').live('click', function(e) {
+                        if($(this).hasClass('dir')) {
+                            e.preventDefault();
+                            getFiles($(this).text());
+                            return false;
+                        }
+                    });*/
                 });
             });
         
