@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Test: Filesystem Stat</title>
+        
+        <script type="text/javascript" src="http://yui.yahooapis.com/3.3.0/build/yui/yui-min.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../lib/webfs.js"></script>
+        
+        <script type="text/javascript">
+            var filename = 'stat.txt';
+            var dirname = 'statdir';
+        
+            YUI().use('test', function (Y) {
+                
+                var suite = new Y.Test.Suite("Filesystem Suite");
+                
+                suite.add(new Y.Test.Case({
+                    name: "Test: Filesystem Stat",
+                    
+                    setUp: function() {
+                        this.webfs = new WebFS();
+                    },
+                    
+                    tearDown: function() {
+                        delete this.webfs;
+                    },
+                    testStatFile: function() {
+                        this.webfs.setFileSystem(this.webfs.TEMPORARY, 1, function(error, _self) {
+                            if (error)
+                                throw error;
+                            
+                            _self.open(filename, 'w', 0664, function(error, fd) {
+                                if (error)
+                                    throw error;
+                                _self.stat(filename, function(error, stat) {
+                                    Y.Assert.isTrue(stat.isFile);
+                                });
+                            });
+                        });
+                    },
+                    testStatDirectory: function() {
+                        this.webfs.setFileSystem(this.webfs.TEMPORARY, 1, function(error, _self) {
+                            if (error)
+                                throw error;
+                             _self.mkdir(dirname, function(error, dir) {
+                                _self.stat(dirname, function(error, stat) {
+                                    Y.Assert.isTrue(stat.isDirectory);
+                                });
+                            });
+                        });
+                    }
+                }));
+                
+                Y.Test.Runner.add(suite);
+                Y.Test.Runner.run();
+            });
+        </script>
+    </head>
+
+    <body>
+        
+    </body>
+</html>
