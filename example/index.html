@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+    <head>
+        <title>WebFS Example</title>
+        <script type="text/javascript" src="lib/jquery.js"></script>
+        <script type="text/javascript" src="../lib/webfs.js"></script>
+        
+        
+    </head>
+    
+    <body>
+        <form id="file-upload" method="post" action="#">
+            <label for="file">File to Upload:</label>
+            <input type="file" id="file" name="file" />
+            <br />
+            <input type="submit" value="Upload" name="upload" id="upload" />
+        </form>
+        <hr />
+        <div id="messages"></div>
+        <div id="file-list">
+            <ul></ul>
+        </div>
+        
+        <script type="text/javascript">
+            var webfs = new WebFS();
+            webfs.setFileSystem(webfs.TEMPORARY, 100, function(error) {
+                
+                if (error) {
+                    $('#messages').text(error);
+                    return
+                }
+                
+                var getFiles = function() {
+                    $('#file-list > ul').html('');
+                    webfs.readdir('/', function(error, list) {
+                        $('#file-list > ul').append('<li class="dir"><a href="..">../</a></li>');
+                        
+                        list.forEach(function(item) {
+                            webfs.open(item, function(error, handler) {
+                                if (['.usage'].indexOf(handler.name) > -1)
+                                    return;
+                                if (handler.isDirectory) {
+                                    $('#file-list > ul').append('<li class="dir"><a href="' + handler.toURL() + '">' + handler.name + '/</a></li>');
+                                } else if (handler.isFile) {
+                                    $('#file-list > ul').append('<li class="file"><a href="' + handler.toURL() + '">' + handler.name + '</a></li>');
+                                }
+                            });
+                        });
+                    });
+                };
+                getFiles();
+                
+                
+                $('#file-upload').submit(function(e) {
+                    e.preventDefault();
+                    
+                    var file = $('#file')[0].files[0];
+                    webfs.writeFile(file.fileName, file, null, function(handler) {
+                        $('#messages').text('File ' + file.fileName + ' uploaded');
+                        getFiles();
+                    });
+                });
+            });
+        
+        </script>
+        
+    </body>
+</html>
