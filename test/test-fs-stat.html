@@ -48,7 +48,32 @@
                                 });
                             });
                         });
-                    }
+                    },
+                    testFStatFile: function() {
+                        this.webfs.setFileSystem(this.webfs.TEMPORARY, 1, function(error, _self) {
+                            if (error)
+                                throw error;
+                            
+                            _self.open(filename, 'w', 0664, function(error, fd) {
+                                if (error)
+                                    throw error;
+                                _self.fstat(fd, function(error, stat) {
+                                    Y.Assert.isTrue(stat.isFile);
+                                });
+                            });
+                        });
+                    },
+                    testFStatDirectory: function() {
+                        this.webfs.setFileSystem(this.webfs.TEMPORARY, 1, function(error, _self) {
+                            if (error)
+                                throw error;
+                             _self.mkdir(dirname, function(error, dir) {
+                                _self.fstat(dir, function(error, stat) {
+                                    Y.Assert.isTrue(stat.isDirectory);
+                                });
+                            });
+                        });
+                    },
                 }));
                 
                 Y.Test.Runner.add(suite);
